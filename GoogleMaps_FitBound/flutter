@@ -1,0 +1,118 @@
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Google Maps Example',
+      home: MapScreen(),
+    );
+  }
+}
+
+class MapScreen extends StatefulWidget {
+  @override
+  _MapScreenState createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  static final CameraPosition riyadh = CameraPosition(
+    target: LatLng(24.7136, 46.6753),
+    zoom: 10,
+  );
+
+  Set<Marker> _markers = Set<Marker>();
+
+  void _addMarkers() {
+    List<Marker> markers = [
+      Marker(
+        markerId: MarkerId('Marker 1'),
+        position: LatLng(24.7743, 46.7389),
+        infoWindow: InfoWindow(title: 'Marker 1'),
+      ),
+      Marker(
+        markerId: MarkerId('Marker 2'),
+        position: LatLng(24.7281, 46.6728),
+        infoWindow: InfoWindow(title: 'Marker 2'),
+      ),
+      Marker(
+        markerId: MarkerId('Marker 3'),
+        position: LatLng(24.688, 46.7222),
+        infoWindow: InfoWindow(title: 'Marker 3'),
+      ),
+      Marker(
+        markerId: MarkerId('Marker 4'),
+        position: LatLng(24.7407, 46.6525),
+        infoWindow: InfoWindow(title: 'Marker 4'),
+      ),
+      Marker(
+        markerId: MarkerId('Marker 5'),
+        position: LatLng(24.7157, 46.6804),
+        infoWindow: InfoWindow(title: 'Marker 5'),
+      ),
+    ];
+
+    setState(() {
+      _markers = markers.toSet();
+    });
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _addMarkers();
+    _fitBounds(controller);
+  }
+
+  void _fitBounds(GoogleMapController controller) {
+    if (_markers.isEmpty) return;
+
+    LatLngBounds bounds = _getMarkerBounds();
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 50);
+    controller.animateCamera(cameraUpdate);
+  }
+
+  LatLngBounds _getMarkerBounds() {
+    double minLat, maxLat, minLng, maxLng;
+
+    for (Marker marker in _markers) {
+      LatLng position = marker.position;
+
+      if (minLat == null || position.latitude < minLat) {
+        minLat = position.latitude;
+      }
+
+      if (maxLat == null || position.latitude > maxLat) {
+        maxLat = position.latitude;
+      }
+
+      if (minLng == null || position.longitude < minLng) {
+        minLng = position.longitude;
+      }
+
+      if (maxLng == null || position.longitude > maxLng) {
+        maxLng = position.longitude;
+      }
+    }
+
+    return LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Google Maps Example'),
+      ),
+      body: GoogleMap(
+        initialCameraPosition: riyadh,
+        markers: _markers,
+        onMapCreated: _onMapCreated,
+      ),
+    );
+  }
+}
