@@ -1,5 +1,5 @@
 const countdown = (offerCreationTime, countdownDurationHours) => {
-  const durationSec = countdownDurationHours * 60 * 60; // convert hours to seconds
+  const durationSec = countdownDurationHours  * 60; // convert minutes to seconds
   const creationDate = new Date(offerCreationTime);
   let diffSec = Math.floor((Date.now() - creationDate.getTime()) / 1000);
   let remainingSec = durationSec - diffSec;
@@ -9,6 +9,7 @@ const countdown = (offerCreationTime, countdownDurationHours) => {
     if (remainingSec < 0) {
       clearInterval(intervalId);
       remainingSec = 0;
+      return
     }
 
     const hours = Math.floor(remainingSec / 3600);
@@ -23,4 +24,4 @@ const countdown = (offerCreationTime, countdownDurationHours) => {
 const offerCreationTime = new Date().toISOString();
 // const offerCreationTime = '2023-03-27T11:13:58.029Z'; //
 // const offerCreationTime = '2023-03-26T11:13:58.029Z'; //  time shows 0
-countdown(offerCreationTime, 24);
+countdown(offerCreationTime, 24 * 60); //  24 hour = 24 * 60 min
