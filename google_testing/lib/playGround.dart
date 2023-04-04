@@ -21,7 +21,6 @@ class _home extends State<Home> {
 
   @override
   void dispose() {
-    SmsAutoFill().nregisterListener();
     super.dispose();
   }
 
