@@ -15,6 +15,10 @@ class _RiyadhMapState extends State<RiyadhMap> {
   LocationData? _myLocation;
   bool _mapLoaded = false;
   bool _isFullScreen = false;
+  bool _isMapFullScreen = false;
+  bool selected = false;
+  bool delayDone = false;
+  double dragDistance = 0.0;
 
   void _toggleFullScreen() {
     setState(() {
@@ -150,97 +154,175 @@ class _RiyadhMapState extends State<RiyadhMap> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Column(
-          children: [
-            Expanded(
-              flex: _isFullScreen ? 4 : 3,
-              child: GoogleMap(
-                mapToolbarEnabled: false,
-                buildingsEnabled: false,
-                zoomControlsEnabled: true,
-                // zoomGesturesEnabled: false,
-                myLocationEnabled: true, // enable my location button
-                mapType: MapType.normal,
-                initialCameraPosition: CameraPosition(
-                  target: _markers.elementAt(0).position,
-                  zoom: 10,
-                ),
-                markers: _markers,
-                onMapCreated: (GoogleMapController controller) {
-                  _mapController = controller;
-                  setState(() {
-                    _mapLoaded = true;
-                  });
-                },
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollUpdateNotification) {
+          setState(() {
+            selected = notification.metrics.pixels > 50;
+          });
+        }
+        return false;
+      },
+      child: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.only(
+                bottom: selected
+                    ? 100
+                    : delayDone
+                        ? MediaQuery.of(context).size.height / 2
+                        : 100),
+            child: GoogleMap(
+              mapToolbarEnabled: false,
+              buildingsEnabled: false,
+              zoomControlsEnabled: true,
+              // zoomGesturesEnabled: false,
+              myLocationEnabled: true, // enable my location button
+              mapType: MapType.normal,
+              initialCameraPosition: CameraPosition(
+                target: _markers.elementAt(0).position,
+                zoom: 10,
               ),
-            ),
-            // Half-screen card with data
-            Visibility(
-              visible: _mapLoaded,
-              child: Expanded(
-                flex: _isFullScreen ? 0 : 1,
-                child: Card(
-                  margin: EdgeInsets.all(1.0),
-                  child: Column(
-                    children: [
-                      // Button to toggle full-screen mode
-
-                      // Data to display in half-screen mode
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text('Some data to display here'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        // Container(
-        //   decoration: BoxDecoration(
-        //       color: Color(0xff240046),
-        //       // borderRadius: BorderRadius.circular(15)
-        //       ),
-        //   // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-        //   // margin: EdgeInsets.symmetric(vertical: 8),
-        //   child:
-
-        Positioned(
-          left: MediaQuery.of(context).size.width / 2 - 15,
-          top: _isFullScreen
-              ? MediaQuery.of(context).size.height - 130
-              : MediaQuery.of(context).size.height - 225,
-          // child: Center(
-          child: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[200],
-              boxShadow: [
-                BoxShadow(
-                  // color: Colors.grey[400],
-                  offset: Offset(0, 1),
-                  blurRadius: 1,
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: Icon(
-                _isFullScreen ? Icons.arrow_upward : Icons.arrow_downward,
-                color: Colors.black,
-              ),
-              iconSize: 12,
-              onPressed: _toggleFullScreen,
+              markers: _markers,
+              onMapCreated: (GoogleMapController controller) {
+                _mapController = controller;
+                setState(() {
+                  _mapLoaded = true;
+                });
+              },
             ),
           ),
-        ),
-        // ),
-        // ),
-      ],
+          // Half-screen card with data
+          AnimatedPositioned(
+            // width: selected ? 200.0 : 50.0,
+            height: selected
+                ? MediaQuery.of(context).size.height / 10
+                : MediaQuery.of(context).size.height / 2,
+            width: MediaQuery.of(context).size.width,
+            bottom: selected ? 0.0 : 0.0,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+            child: GestureDetector(
+              onVerticalDragEnd: (details) {
+                dragDistance = 0.0;
+              },
+
+              onVerticalDragUpdate: (details) {
+                // Determine the direction and distance of the drag
+
+                double delta = details.delta.dy;
+                bool isDraggingDown = delta > 0;
+                // dragDistance = 0.0;
+
+                dragDistance += delta;
+                dragDistance += delta.abs() * (delta > 0 ? 1 : -1);
+
+                print(
+                    'dragging down? ${isDraggingDown} - dragDistance : ${dragDistance} - ${details.globalPosition.dy}');
+                // Only update the state if the drag distance is greater than 300 pixels
+                if (dragDistance > 100) {
+                  setState(() {
+                    // Expand the card when dragging down, collapse it when dragging up
+                    selected = true;
+                  });
+                  dragDistance = 0.0;
+                } else if (dragDistance < -100) {
+                  setState(() {
+                    // Expand the card when dragging down, collapse it when dragging up
+                    selected = false;
+                  });
+                  dragDistance = 0.0;
+                }
+
+                // if (details.delta.dy > 0) {
+                //   setState(() {
+                //     // Expand the card based on the scrolling amount
+                //     selected = details.globalPosition.dy >= 300 &&
+                //         details.globalPosition.dy <= 600;
+                //   });
+                // }
+              },
+              onTap: () {
+                setState(() {
+                  selected = !selected;
+                  delayDone = false;
+                  Future.delayed(Duration(milliseconds: 400), () {
+                    setState(() {
+                      delayDone = true;
+                    });
+                  });
+                });
+              },
+              // onVerticalDragEnd: (details) {
+              //   setState(() {
+              //     selected = false;
+              //   });
+              // },
+
+              child: Card(
+                margin: EdgeInsets.all(0),
+                child: Column(
+                  children: [
+                    // Button to toggle full-screen mode
+
+                    // Data to display in half-screen mode
+                    Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Some data fto display here'),
+                    ),
+                  ],
+                ),
+              ),
+              // ),
+            ),
+          ),
+
+          // Container(
+          //   decoration: BoxDecoration(
+          //       color: Color(0xff240046),
+          //       // borderRadius: BorderRadius.circular(15)
+          //       ),
+          //   // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+          //   // margin: EdgeInsets.symmetric(vertical: 8),
+          //   child:
+
+          // Positioned(
+          //   // left: MediaQuery.of(context).size.width / 2 - 15,
+          //   // top: _isFullScreen
+          //   //     ? MediaQuery.of(context).size.height - 130
+          //   //     : MediaQuery.of(context).size.height - 225,
+          //   bottom: _isFullScreen ? 16 : 25,
+          //   right: MediaQuery.of(context).size.width / 2 - 14,
+          //   // child: Center(
+          //   child: Container(
+          //     width: 28,
+          //     height: 28,
+          //     decoration: BoxDecoration(
+          //       shape: BoxShape.circle,
+          //       color: Colors.grey[200],
+          //       boxShadow: [
+          //         BoxShadow(
+          //           color: Colors.grey.withOpacity(1),
+          //           offset: Offset(0, 1),
+          //           blurRadius: 2,
+          //         ),
+          //       ],
+          //     ),
+          //     child: IconButton(
+          //       padding: EdgeInsets.zero,
+          //       icon: Icon(
+          //         _isFullScreen ? Icons.arrow_upward : Icons.arrow_downward,
+          //         color: Colors.black,
+          //       ),
+          //       iconSize: 14,
+          //       onPressed: _toggleFullScreen,
+          //     ),
+          //   ),
+          // ),
+          // ),
+          // ),
+        ],
+      ),
     );
   }
 

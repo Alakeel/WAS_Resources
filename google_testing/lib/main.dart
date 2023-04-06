@@ -53,8 +53,8 @@ class MyApp extends StatelessWidget {
           title: Text('Riyadh Map'),
           // brightness: Brightness.light, // or use Brightness.dark
         ),
-        // body: RiyadhMap(),
-        body: Home(),
+        body: RiyadhMap(),
+        // body: Home(),
       ),
     );
   }
