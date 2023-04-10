@@ -14,7 +14,7 @@ class _home extends State<Home> {
   final _cardNumberFocus = FocusNode();
   final _cardPinFocus = FocusNode();
 
- @override
+  @override
   void initState() {
     super.initState();
   }
@@ -47,7 +47,6 @@ class _home extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-
     // return SingleChildScrollView(
     return KeyboardActions(
       config: _buildKeyboardActionsConfig(context),
@@ -79,11 +78,11 @@ class _home extends State<Home> {
                   hintStyle: TextStyle(color: Colors.grey),
                   contentPadding: EdgeInsets.zero,
                   // contentPadding: EdgeInsets.only(top: 12, left: 10),
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: Icon(Icons.access_alarm),
                 ),
               ),
               popupProps: PopupProps.menu(
-                showSearchBox: true,
+                showSearchBox: false,
               ),
               clearButtonProps: ClearButtonProps(isVisible: true),
             ),
