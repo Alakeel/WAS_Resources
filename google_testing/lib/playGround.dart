@@ -57,15 +57,15 @@ class _home extends State<Home> {
           SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.all(25.0),
-            child: DropdownSearch<int>(
-              items: [1, 2, 3, 4, 5, 6, 7],
+            child: DropdownSearch<String>(
+              items: ['asd'],
               autoValidateMode: AutovalidateMode.onUserInteraction,
               onChanged: (item) => {print('selected => ${item}')},
-              validator: (int? i) {
-                if (i == null) return 'Required Filed';
-                // else if (i >= 5) return 'value should be < 5';
-                return null;
-              },
+              // validator: (int? i) {
+              //   if (i == null) return 'Required Filed';
+              //   // else if (i >= 5) return 'value should be < 5';
+              //   return null;
+              // },
               dropdownDecoratorProps: DropDownDecoratorProps(
                 dropdownSearchDecoration: InputDecoration(
                   border: OutlineInputBorder(
